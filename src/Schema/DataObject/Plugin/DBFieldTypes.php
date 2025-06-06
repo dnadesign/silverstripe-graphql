@@ -113,12 +113,13 @@ class DBFieldTypes implements ModelTypePlugin
     private function applyComposite(ModelField $field, Schema $schema): void
     {
         $sng = Injector::inst()->get($field->getModel()->getSourceClass());
-        /* @var DBComposite $compositeField */
-        $compositeField = $sng->dbObject($field->getPropertyName());
-        if ($compositeField) {
-            $name = ClassInfo::shortName(get_class($compositeField)) . 'Composite';
+        # Fixed: Correctly identify composite fields
+        $dbField = $sng->dbObject($field->getPropertyName());
+
+        if ($dbField instanceof DBComposite) {
+            $name = ClassInfo::shortName(get_class($dbField)) . 'Composite';
             if (!$schema->getType($name)) {
-                $nestedDBFields = $compositeField->compositeDatabaseFields();
+                $nestedDBFields = $dbField->compositeDatabaseFields();
                 $compositeType = Type::create($name);
                 foreach ($nestedDBFields as $nestedFieldName => $nestedFieldType) {
                     $graphqlType = Injector::inst()->get($nestedFieldType)->config()->get('graphql_type');

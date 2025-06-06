@@ -240,9 +240,19 @@ class Field implements
      */
     public function mergeWith(Field $field): Field
     {
+        // Fix: Allow the overriding of field types, even those loaded via bulk load!
+        if ($field->getType() !== null) {
+            $this->type = $field->getType();
+        }
+
+        if ($field->getTypeAsModel() !== null) {
+            $this->typeAsModel = $field->getTypeAsModel();
+        }
+
         foreach ($field->getArgs() as $arg) {
             $this->args[$arg->getName()] = clone $arg;
         }
+
         $this->mergePlugins($field->getPlugins());
 
         return $this;

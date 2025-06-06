@@ -8,6 +8,7 @@ use SilverStripe\GraphQL\Schema\Field\ModelField;
 use SilverStripe\GraphQL\Schema\Interfaces\ModelTypePlugin;
 use SilverStripe\GraphQL\Schema\Schema;
 use SilverStripe\GraphQL\Schema\Type\ModelType;
+use SilverStripe\ORM\FieldType\DBBoolean;
 use SilverStripe\ORM\FieldType\DBField;
 
 /**
@@ -46,10 +47,16 @@ class ScalarDBField implements ModelTypePlugin
      */
     public static function resolve($obj)
     {
-        if ($obj instanceof DBField) {
-            return $obj->getValue();
+        // Only handle db fields
+        if (!$obj instanceof DBField) {
+            return $obj;
         }
 
-        return $obj;
+        // Fix: Enforce the return of a sensible default (false) instead of null
+        if ($obj instanceof DBBoolean || $obj instanceof DBInt) {
+            return $obj->getValue() ?? $obj->getDefaultValue();
+        }
+
+        return $obj->getValue();
     }
 }
